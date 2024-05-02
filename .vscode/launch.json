@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C/C++: clang build and debug active file",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/extract_video",
+            "args": [
+                "-i",
+                "/Volumes/PCNVR_RECORD_FILE/Package000/",
+                "-o",
+                "/Development/tmp/",
+                "-p",
+                "-s",
+                "2024-04-30"//,
+                //"-v"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "C/C++: clang build active file"
+        }
+    ]
+}
