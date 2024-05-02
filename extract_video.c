@@ -55,7 +55,7 @@ Test:
 #define le64toh(x) __bswap_64((uint64_t)(x))
 #endif /* __BYTE_ORDER == __LITTLE_ENDIAN */
 
-#define PROGRAM_VERSION "0.3"
+#define PROGRAM_VERSION "0.4"
 
 struct FILE_IDX_HEADER
 {
@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 	char *inputPath = NULL, *outputPath = NULL, *matchString = NULL, buffer[8192];
 	FILE *idxFile, *ivFile, *ovFile;
 
-	unsigned int skip_existing = 0, verbose = 0, list_only = 0, totals_only = 0, pics_only = 0;
+	unsigned int skip_existing = 0, verbose = 0, list_only = 0, totals_only = 0, pics_only = 0, json_output = 0;
 
 	unsigned long total_files = 0;
 	unsigned long long total_filesize = 0;
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 
 	// Parse options
 
-	while (err == 0 && (c = getopt(argc, argv, "tvlkphi:o:s:")) != -1)
+	while (err == 0 && (c = getopt(argc, argv, "tvjlkphi:o:s:")) != -1)
 	{
 		switch (c)
 		{
@@ -217,6 +217,10 @@ int main(int argc, char **argv)
 		case 'p': // Create thumbs
 			pics_only = 1;
 			break;
+		
+		case 'j': // json output
+			json_output = 1;
+			break;
 
 		case 'v': // Verbose mode
 			verbose = 1;
@@ -225,8 +229,9 @@ int main(int argc, char **argv)
 		case 'h':
 		case '?':
 			help = 1;
-			printf("Read/Extract Hikvision Video File Storage\n");
-			printf("Alexey Ozerov (c) 2014 - ver. %s\n\n", PROGRAM_VERSION);
+			printf("Read/Extract Hikvision Video File Storage - ver. %s\n\n", PROGRAM_VERSION);
+			printf("Alexey Ozerov (c) 2014 \n\n");
+			printf("Dominic Winkler (c) 2024 \n\n");
 			printf("Options\n");
 			printf(" -? -h            Display this help\n");
 			printf(" -i <path>        Input directory path\n");
@@ -236,6 +241,7 @@ int main(int argc, char **argv)
 			printf(" -l				        List only, don't extract data\n");
 			printf(" -t				        Only calculate and show totals\n");
 			printf(" -v				        Verbose mode\n");
+			printf(" -j				        JSON output\n");
 			printf(" -p				        Only create thumbnail pics\n");
 		}
 	}
@@ -373,9 +379,13 @@ int main(int argc, char **argv)
 
 							if (!totals_only)
 							{
-								printf("File name: %s\n", ovFilename);
-								printf("File size: %zu bytes\n", filesize);
-								printf("Play time: %u sec\n", segment.endTime - segment.startTime);
+								if (json_output) {
+									printf("{ \"type\": \"seg\", \"filename\": \"%s\", \"filesize\": %zu, \"duration\": %u, \"chan\": %u, \"start\": %u, \"end\": %u, \"offset1\": %u, \"offset2\": %u, \"srcFile\": \"%shiv%05u.mp4\" }\n", ovFilename, filesize, segment.endTime - segment.startTime, files[i].chan, segment.startTime, segment.endTime, segment.startOffset, segment.endOffset, inputPath, i);
+								} else {
+									printf("File name: %s\n", ovFilename);
+									printf("File size: %zu bytes\n", filesize);
+									printf("Play time: %u sec\n", segment.endTime - segment.startTime);
+								}	
 							}
 
 							total_files++;
@@ -491,10 +501,13 @@ int main(int argc, char **argv)
 				}
 			}
 
-			printf("Total files: %lu\n", total_files);
-			printf("Total file size: %llu bytes (=%llu MB)\n", total_filesize, total_filesize / 1024 / 1024);
-			printf("Total play time: %lu sec (=%lu min)\n", total_time, total_time / 60);
-
+			if (json_output) {
+				printf("{ \"type\": \"total\", \"numfiles\": %lu, \"totalsize\": %llu, \"totalplaytime\": %lu }\n", total_files, total_filesize, total_time);
+			} else {
+				printf("Total files: %lu\n", total_files);
+				printf("Total file size: %llu bytes (=%llu MB)\n", total_filesize, total_filesize / 1024 / 1024);
+				printf("Total play time: %lu sec (=%lu min)\n", total_time, total_time / 60);
+			}
 			fclose(idxFile);
 		}
 	}

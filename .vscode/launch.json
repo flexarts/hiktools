@@ -11,7 +11,8 @@
                 "/Volumes/PCNVR_RECORD_FILE/Package000/",
                 "-o",
                 "/Development/tmp/",
-                "-p",
+                "-l",
+                "-j",
                 "-s",
                 "2024-04-30"//,
                 //"-v"
